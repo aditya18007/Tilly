@@ -1,4 +1,4 @@
-# Solange
+# Get latest tweet from twitter using tor network
 Use tor proxies and selenium to get latest tweet from twitter
 
 **NOTE : I AM NOT LIABLE FOR ANYTHING ILLEGAL THAT YOU MAY DO**
