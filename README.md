@@ -48,3 +48,9 @@ If you open twitter without login and search something, and go to `latest` tab, 
 #### Random sleeps
 * After `driver.get(start_url) ` there is a sleep. This is because it takes time to get the webpage. If this sleep is not there, selenium will simply find the element and give error as full webpage is not loaded. 
 * At the start of every loop there is a sleep. Its purpose is to make queries appear not automatic. I do not know if it has any impact.
+
+## Possible errors
+#### OSError: Process terminated: Failed to bind one of the listener ports.
+* This is because tor is not able to bind to a one of control ports or listener ports. 
+* Kill the earlier tor process that is using that has not exited properly. 
+* If on Ubuntu, do `sudo pkill tor`. 
