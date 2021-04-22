@@ -3,6 +3,7 @@ Use tor proxies and selenium to get latest tweet from twitter
 
 **NOTE : I AM NOT LIABLE FOR ANYTHING ILLEGAL THAT YOU MAY DO**
 
+See [API](API.md) for more info.
 ## Dependencies
 
 ### Tor 
