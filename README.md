@@ -32,9 +32,6 @@ pip3 install stem
 pip3 install selenium
 
 ```
-### Proxy setting
-* To use the network created by tor, you have to set socks proxy to `127.0.0.0` port `9050`.
-* This should be the machine's proxy, see google on how to set it.
 
 ## What is happening ?
 
