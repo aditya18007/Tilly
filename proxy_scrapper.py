@@ -14,25 +14,24 @@ def print_bootstrap_lines(line):
     if "Bootstrapped " in line:
         print(term.format(line, term.Color.RED))
 
-print(term.format("Starting Tor:\n", term.Attr.BOLD))
+def start_torProcess():
 
-SOCKS_PORT = 9050
-CONTROL_PORT = 9051
-LARGE_VALUE = str(999999)
-TRUE = str(1)
-FALSE = str(0)
+    print(term.format("Starting Tor:\n", term.Attr.BOLD))
 
+    SOCKS_PORT = 9050
+    CONTROL_PORT = 9051
 
-tor_process = stem.process.launch_tor_with_config(
-    config = {
-        'SocksPort': str(SOCKS_PORT)
-        ,'ControlPort':str(CONTROL_PORT)
-    },
-    init_msg_handler = print_bootstrap_lines,
-)
+    tor_process = stem.process.launch_tor_with_config(
+        config = {
+            'SocksPort': str(SOCKS_PORT)
+            ,'ControlPort':str(CONTROL_PORT)
+        },
+        init_msg_handler = print_bootstrap_lines,
+    )
+    return tor_process
 
 def createNewCircuit():
-    with Controller.from_port('127.0.0.1',CONTROL_PORT) as controller:
+    with Controller.from_port('127.0.0.1',9051) as controller:
         print("\tCreating Circuit")
         active_circuits = []
         controller.authenticate()
@@ -52,33 +51,75 @@ def randomSleep(start,end):
     print(f"\tWaiting for {rand_sleep} seconds")
     time.sleep(rand_sleep)
 
-count = 0
-prev = ""
+def checkTorLoop(driverPath):
+    """
+    check.torproject.org is a website to check whether you are connected using 
+    tor network. This loop will open the website 5 times. You should see that 
+    the webpage shows succesfully connected using tor. 
 
-start_url = "https://twitter.com/search?q=delhi%20verified%20(oxygen%20OR%20bed)&src=typed_query&f=live" 
-my_xpath = '/html/body/div/div/div/div[2]/main/div/div/div/div[1]/div/div[2]/div/div/section/div/div/div[1]'
-#Path to chrome driver
-path = "/home/aditya/Desktop/chromedriver_linux64/chromedriver"
-while True:
+    It will also show your IP address. Ideally it should be different as you will 
+    we are creating a new circuit every time.
+    """
 
-    print(f"Executing {count}")
-    createNewCircuit()
-    randomSleep(20,30)
-    driver = webdriver.Chrome(executable_path=path)
-    print('\tOpening Page')
-    driver.get(start_url)  
-    randomSleep(10,20)
-    print('\tReading Page')
-    element = driver.find_element_by_xpath(my_xpath)
-    response = element.text
-    if response == prev:
-        print("\t\tNo new tweet")
+    check_tor_url = "https://check.torproject.org/"
+    
+    for i in range(5):
+        print(f"Test : {i}")
+        createNewCircuit()
+        options = webdriver.ChromeOptions()
+        proxy = '127.0.0.1:9050'
+        options.add_argument('--proxy-server=socks5://' + proxy)   
+        driver = webdriver.Chrome(executable_path=driverPath,options=options)
+        print('Opening Page')
+        driver.get(check_tor_url)  
+        print('Waiting for 10 seconds')
+        time.sleep(10)
         driver.close()
+        print()
+
+def twitterLoop(xpath,url,pathToDriver):
+
+    count = 0
+    prev = ""
+    
+    while True:
+
+        print(f"Executing {count}")
+        createNewCircuit()
+        #randomSleep(20,30)
+        options = webdriver.ChromeOptions()
+        proxy = '127.0.0.1:9050'
+        options.add_argument('--proxy-server=socks5://' + proxy)   
+        driver = webdriver.Chrome(executable_path=pathToDriver,options=options)
+        print('\tOpening Page')
+        driver.get(url)  
+        randomSleep(30,40)
+        print('\tReading Page')
+        try:
+            element = driver.find_element_by_xpath(xpath)
+            response = element.text
+            if response == prev:
+                print("\t\tNo new tweet")
+                driver.close()
+                print("------------------------------------------")
+                continue
+            prev = response 
+            print("\t\t"+response)
+        except:
+            print("------------------------------------------")
+            driver.close()
+            continue
         print("------------------------------------------")
-        continue
-    prev = response 
-    print("\t\t"+response)
-    print("------------------------------------------")
-    driver.close()
-    count+=1
-    print()
+        driver.close()
+        count+=1
+        print()
+
+if __name__ == "__main__":
+    
+    process = start_torProcess()
+    url = "https://twitter.com/search?q=delhi%20verified%20(oxygen%20OR%20bed)&src=typed_query&f=live" 
+    xpath = '/html/body/div/div/div/div[2]/main/div/div/div/div[1]/div/div[2]/div/div/section/div/div/div[1]'
+    #Path to chrome driver
+    driver_path = "/home/aditya/Desktop/chromedriver_linux64/chromedriver"
+    #checkTorLoop() Uncomment to see if 
+    twitterLoop(xpath,url,driver_path)
